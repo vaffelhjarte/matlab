@@ -1,0 +1,91 @@
+close all;
+clear;
+U1=1;
+U2=2;
+U3=3;
+U4=4;
+T1=1*10^-3;
+T2=2*10^-3;
+Fd=10*10^3;
+T=1/Fd;
+t1=0:T:T1;
+A1=U1-U2;
+B1=T1-0;
+C1=0*U2-T1*U1;
+a1=-A1/B1;
+b1=-C1/B1;
+y1=a1*t1+b1;
+t2=T1:T:T2;
+A2=U3-U4;
+B2=T2-T1;
+C2=T1*U4-T2*U3;
+a2=-A2/B2;
+b2=-C2/B2;
+y2=a2*t2+b2;
+t=[t1 t2];
+y=[y1 y2];
+figure(1);
+stem(y);
+title('График дискретного сигнала');
+
+dpf=fft(y);
+figure(2);
+subplot(2,1,1);
+stem(abs(dpf));
+title('График модуля спектральных отсчётов');
+subplot(2,1,2);
+stem(angle(dpf));
+title('График фаз спекральных отсчётов');
+
+E=sum((abs(y)).^2);
+dpf_new=dpf;
+Nmax=0;
+Emin=0.9*E;
+inv_dpf_new=0;
+if sum((abs(inv_dpf_new)).^2) < Emin
+    Nmax=Nmax+1;
+    for k=1:length(y)
+        if (k>Nmax) && (k<(length(y)-Nmax))
+            dpf_new(k)=0;
+        end
+    end
+end
+figure(3);
+subplot(2,1,1);
+stem(abs(dpf_new));
+title('График модуля спектральных отсчётов с обнулёнными гармониками');
+subplot(2,1,2);
+stem(angle(dpf_new));
+title('График фаз спекральных отсчётов с обнулёнными гармониками');
+inv_dpf_new=ifft(dpf_new);
+figure(4);
+stem(inv_dpf_new);
+title('График сигнала, полученного через обратное ДПФ');
+E1=sum((abs(inv_dpf_new)).^2);
+
+y_new=[y,zeros(1,length(y))];
+y_new_dpf=fft(y_new);
+figure(5)
+subplot(2,1,1)
+stem(abs(y_new_dpf));
+title('График модуля спектральных отсчётов сигнала с дополненными нулями');
+subplot(2,1,2)
+stem(angle(y_new_dpf));
+title('График фаз спектральных отсчётов сигнала с дополненными нулями');
+
+N=1024; 
+x1=[y, zeros(1,N-length(y))];
+D=dftmtx(N); 
+rez_dpf=zeros(1,N); 
+tic 
+for k=1:120
+ pr=x1*D; 
+end
+toc 
+
+x2=zeros(1,N); 
+tic 
+for k=1:200000 
+ x2=fft(y, N); 
+end
+toc 
